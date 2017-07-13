@@ -212,30 +212,30 @@ class Model(dict, metaclass=ModelMetaclass):
     @classmethod
     async def findone(cls, pk):
         '''find by primaryKey'''
-        rs = await select('%s where `%s`=?' % (cls.__select__, cls.__mappings[cls.__primary_key__].name or cls.__primary_key__), [pk], 1)
+        rs = await select('%s where `%s`=?' % (cls.__select__, cls.__mappings__[cls.__primary_key__].name or cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
         return cls(**rs[0])
 
     # 查找 By Where
     @classmethod
-    async def findwhere(cls, where=None, args=None, **kw):  # where:where后面的条件字符串(有？)
+    async def findwhere(cls, where=None, args=None, **kw):  # where:where后面的条件字符串(没有？) args:seclect语句参数
         sql = [cls.__select__]
         if where:
             sql.append('where')
-            sql.qppend(where)
+            sql.append(where)
         if args == None:
             args = []
         orderby = kw.get('orderby', None)
         if orderby:
-            sql.qppend('order by')
-            sql.qppend(orderby)
+            sql.append('order by')
+            sql.append(orderby)
         limit = kw.get('limit', None)
         if limit:
             if isinstance(limit, int):
                 sql.append('limit')
                 sql.append(limit)
-            elif isinstance(limit, tupple) and len(limit) == 2:
+            elif isinstance(limit, tuple) and len(limit) == 2:
                 sql.append('limit')
                 sql.extend(limit)
             else:
