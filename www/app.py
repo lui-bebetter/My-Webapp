@@ -26,7 +26,7 @@ def init_jinja2(app,**kw):
     )
     path=kw.get('path',None)
     if  path is None:
-        path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'template')
+        path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'templates')
     logging.info('set jinja2 template path:<%s>'%path)
     env=Environment(loader=FileSystemLoader(path),**options)
     filters=kw.get('filters',None)
@@ -63,10 +63,10 @@ async def data_factory(app,handler):
     async def parse_data(request):
         if request.method=='POST':
             ct=request.content_type.lower()
-            if ct.startwith('application/json'):
+            if ct.startswith('application/json'):
                 request.__data__=request.json()
                 logging.info('request json:%s'%str(request.__data__))
-            if ct.startwith('application/x-www-form-urlencoded') or ct.startwith('multipart/form-data'):
+            if ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
                 request.__data__=request.post()
                 logging.info('request form:%s'%str(request.__data__))
         return (await handler(request))
@@ -112,7 +112,7 @@ async def response_factory(app,handler):
 
 async def init(loop):
     await orm.create_pool(loop=loop,user='www-data',password='www-data',db='awesome')
-    app=web.Application(loop=loop,middlewares=[response_factory,data_factory,logger_factory])
+    app=web.Application(loop=loop,middlewares=[logger_factory,data_factory,response_factory])
     init_jinja2(app,filters=dict(datetime=datetime_filter))
     add_static(app)
     add_routes(app,'handlers')

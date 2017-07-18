@@ -51,6 +51,7 @@ def has_request_args(func):
     for name, para in params.items():
         if name == 'request':
             found = True
+            continue
         if found and para.kind != inspect.Parameter.KEYWORD_ONLY and para.kind != inspect.Parameter.VAR_KEYWORD and para.kind != inspect.Parameter.VAR_POSITIONAL:
             raise ValueError(
                 'request parameter must be the last named parameter in function: %s' % func.__name__)
@@ -85,16 +86,16 @@ class RequestHandler(object):
                 qs = request.query_string
                 for k, v in parse.parse_qs(qs, True).items():
                     kw[k] = v[0]
-            if request.method == 'post':
+            if request.method == 'POST':
                 if not request.content_type:
                     return web.HTTPBadRequest('Missing content type.')
                 ct = request.content_type.lower()
-                if ct.startwith('application/json'):
+                if ct.startswith('application/json'):
                     params = await request.post()
                     if not isinstance(params, dict):
                         return web.HTTPBadRequest('JSON body must be object...')
                     kw = params
-                if ct.startwith('application/x-www-form-urlencoded') or ct.startwith('multipart/form-data'):
+                if ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
                     params = await request.post()
                     kw = dict(**params)
                 else:
@@ -155,11 +156,13 @@ def add_routes(app, module_name):
         mod = getattr(__import__(
             module_name[:index], globals(), locals(), [name]), name)
     for attr in dir(mod):
-        if attr.startwith('__'):
+
+        if attr.startswith('__'):
             continue
         fn = getattr(mod, attr)
-        if callable(attr):
+        if callable(fn):
             method = getattr(fn, '__method__', None)
             path = getattr(fn, '__path__', None)
             if method and path:
+
                 add_route(app, fn)
